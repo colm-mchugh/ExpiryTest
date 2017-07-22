@@ -1,7 +1,10 @@
 package com.colm.expiremap;
 
 /**
- *
+ * ExpireMap - variant of a map where a key,value pair is removed after a 
+ * designated amount of time (specified when the pair is put in the map) if
+ * not already explicitly removed.
+ * 
  * @author colm_mchugh
  */
 public interface ExpireMap<K, V> {
@@ -36,5 +39,10 @@ public interface ExpireMap<K, V> {
     void remove(K key);
 
       
+    /**
+     * Return the number of key-value mappings.
+     * 
+     * @return 
+     */
     int size();
 }

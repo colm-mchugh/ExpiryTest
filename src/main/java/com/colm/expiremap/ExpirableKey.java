@@ -6,7 +6,11 @@ import java.util.concurrent.TimeUnit;
 
 /**
  *
- * Note that the API of Delayed requires a getDelay() method, it is more useful 
+ * ExpirableKey is a key that expires after a fixed amount of time. It implements
+ * the Delayed API from the concurrent library, which represents objects that are
+ * acted on after a certain delay. In this case, acted on means expired.
+ * 
+ * Note that the API of Delayed specifies a getDelay() method, it is more useful 
  * in the context of this application to think of the delay as the remaining 
  * life that the key has left.
  * 
@@ -18,11 +22,25 @@ public class ExpirableKey<K> implements Delayed {
     private final long lifeSpan;
     private final K key;
 
+    /**
+     * Create an ExpirableKey for the given key with given lifeSpan.
+     * The ExpirableKey's birth time is set to current system time.
+     * 
+     * @param key
+     * @param lifeSpan 
+     */
     public ExpirableKey(K key, long lifeSpan) {
         this.key = key;
         this.lifeSpan = lifeSpan;
     }
     
+    /**
+     * Return the amount of delay (or remaining life) left for this key.
+     * This implements the Delayed API contract.
+     * 
+     * @param unit
+     * @return 
+     */
     @Override
     public long getDelay(TimeUnit unit) {
         return unit.convert(remainingLife(), TimeUnit.MILLISECONDS);
@@ -31,10 +49,11 @@ public class ExpirableKey<K> implements Delayed {
     /**
      * Kill this key! Used to forcibly expunge a key, e.g. when putting a key,
      * value pair of an already existing key, or when removing a key that has
-     * not yet lived out its lifespan.
+     * not yet lived out its lifespan. Done by setting its birth to a point in
+     * past time that is twice its life span. 
      */
     public void die() {
-        birth = System.currentTimeMillis() - this.lifeSpan - 1;
+        birth = System.currentTimeMillis() - (this.lifeSpan * 2);
     }
 
     /**
@@ -90,6 +109,11 @@ public class ExpirableKey<K> implements Delayed {
         return (birth + lifeSpan) - System.currentTimeMillis();
     }
     
+    /**
+     * Return the key
+     * 
+     * @return 
+     */
     K Key() {
         return this.key;
     }

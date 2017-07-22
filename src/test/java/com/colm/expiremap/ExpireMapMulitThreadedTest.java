@@ -7,13 +7,18 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- *
+ * Test that ExpireMap is consistent - gives expected results - when its API
+ * is used by concurrent clients.
+ * 
  * @author colm_mchugh
  */
 public class ExpireMapMulitThreadedTest {
 
     private final static int NUM_CLIENTS = 10;
 
+    /**
+     * PutRunner invokes put on an ExpireMap
+     */
     class PutRunner implements Runnable {
 
         private final int num;
@@ -35,6 +40,15 @@ public class ExpireMapMulitThreadedTest {
     public void testMultiplePut() {
         ExpireMap<String, String> em = new ExpireMapImpl<>();
         ExecutorService executor = Executors.newFixedThreadPool(NUM_CLIENTS);
+        
+        // Checks that given N put operations put(k1, v1); put(k2, v2);...;put(kN, VN)
+        // on an empty ExpireMap with no defined order on their execution(*), 
+        // after they have completed execution there should be exactly N key value
+        // pairs with the expected key-value pairs.
+        // 
+        // (*) there is no guaranteed order on their execution; depending on the
+        // environment this code is run in, they may be executed serially, or a 
+        // subset of them may be executed in parallel.       
         for (int i = 0; i < NUM_CLIENTS; i++) {
             Runnable putter = new PutRunner(i, em);
             executor.execute(putter);
@@ -59,6 +73,16 @@ public class ExpireMapMulitThreadedTest {
     public void testExpiringPut() {
         ExecutorService executor = Executors.newFixedThreadPool(NUM_CLIENTS);
         ExpireMap<String, String> em = new ExpireMapImpl<>();
+        
+        // Checks that given N put operations put(k1, v1); put(k2, v2);...;put(kN, VN)
+        // on an empty ExpireMap with no defined order on their execution(*), 
+        // followed by a wait period longer than the longest expiration time in
+        // the puts, then the map should be empty.
+        // 
+        // (*) there is no guaranteed order on their execution; depending on the
+        // environment this code is run in, they may be executed serially, or a 
+        // subset of them may be executed in parallel.       
+        
         for (int i = 0; i < NUM_CLIENTS; i++) {
             Runnable putter = new PutRunner(i, em);
             executor.execute(putter);
@@ -102,6 +126,10 @@ public class ExpireMapMulitThreadedTest {
     public void testMultiplePutRemove() {
         ExecutorService executor = Executors.newFixedThreadPool(NUM_CLIENTS);
         ExpireMap<String, String> em = new ExpireMapImpl<>();
+        
+        // Checks that given N serial put operations on an initially empty map,
+        // followed by N concurrent removes, followed by waiting for all the 
+        // removes to complete, then the map should be empty.
         for (int i = 0; i < NUM_CLIENTS; i++) {
             em.put("Key" + i, "Val" + i, 5000);
         }
