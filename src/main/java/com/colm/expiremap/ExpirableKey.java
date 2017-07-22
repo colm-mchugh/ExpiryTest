@@ -12,7 +12,9 @@ import java.util.concurrent.TimeUnit;
  * 
  * Note that the API of Delayed specifies a getDelay() method, it is more useful 
  * in the context of this application to think of the delay as the remaining 
- * life that the key has left.
+ * life that the key has left. In conjunction, ExpirableKeys are maintained in 
+ * a DelayQueue by the ExpireMap implementation, so that keys which expire can
+ * be accessed in constant time (see ExpireMapImpl).
  * 
  * @author colm_mchugh
  */
