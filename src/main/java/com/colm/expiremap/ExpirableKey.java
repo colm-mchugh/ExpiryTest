@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class ExpirableKey<K> implements Delayed {
 
     private long birth = System.currentTimeMillis();
-    private final long lifeSpan;
+    private final long lifeSpan; // TODO: use java.util.concurrent.atomic.AtomicInteger instead
     private final K key;
 
     /**
